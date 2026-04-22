@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe - Power Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+ 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+ 
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+        }
+ 
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+ 
+        h1 {
+            font-size: 28px;
+            color: #333;
+            margin: 0;
+        }
+ 
+        .help-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+ 
+        .help-btn:hover {
+            background: #764ba2;
+        }
+ 
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+ 
+        .modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+ 
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+ 
+        .close-btn {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+ 
+        .close-btn:hover {
+            color: #000;
+        }
+ 
+        .modal h2 {
+            margin-top: 0;
+            color: #333;
+            margin-bottom: 15px;
+        }
+ 
+        .modal ul {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+ 
+        .modal li {
+            margin-bottom: 10px;
+            color: #555;
+        }
+ 
+        .game-info {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+ 
+        .current-player {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+ 
+        .power-move-counter {
+            font-size: 14px;
+            color: #667eea;
+            font-weight: bold;
+        }
+ 
+        .board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+ 
+        .cell {
+            width: 100%;
+            aspect-ratio: 1;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+            color: #333;
+        }
+ 
+        .cell:hover:not(.taken) {
+            background: #f9f9f9;
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+ 
+        .cell.taken {
+            cursor: not-allowed;
+        }
+ 
+        .cell.x {
+            color: #667eea;
+        }
+ 
+        .cell.o {
+            color: #764ba2;
+        }
+ 
+        .cell.power-mode {
+            background: #fff9e6;
+            border-color: #ffc107;
+        }
+ 
+        .status {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            margin-bottom: 15px;
+            min-height: 24px;
+        }
+ 
+        .status.winner {
+            color: #4caf50;
+            font-size: 20px;
+        }
+ 
+        .status.draw {
+            color: #ff9800;
+            font-size: 20px;
+        }
+ 
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+ 
+        button {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+ 
+        .reset-btn {
+            background: #667eea;
+            color: white;
+        }
+ 
+        .reset-btn:hover {
+            background: #764ba2;
+        }
+ 
+        .remove-btn {
+            background: #ff6b6b;
+            color: white;
+            display: none;
+        }
+ 
+        .remove-btn.active {
+            display: block;
+        }
+ 
+        .remove-btn:hover {
+            background: #ee5a52;
+        }
+ 
+        .remove-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+ 
+        .grid-selector {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+ 
+        .grid-btn {
+            background: white;
+            border: 2px solid #ddd;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s;
+            color: #333;
+        }
+ 
+        .grid-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+ 
+        .grid-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+ 
+        .power-move-settings {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+ 
+        .settings-label {
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+ 
+        .power-move-input {
+            border: 2px solid #ddd;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 80px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+ 
+        .power-move-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+ 
+        @media (max-width: 500px) {
+            .container {
+                padding: 20px;
+            }
+ 
+            h1 {
+                font-size: 24px;
+            }
+ 
+            .cell {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Tic Tac Toe</h1>
+            <button class="help-btn" onclick="openRules()">?</button>
+        </div>
+ 
+        <div class="grid-selector">
+            <button class="grid-btn active" onclick="changeGridSize(3)">3x3</button>
+            <button class="grid-btn active" onclick="changeGridSize(4)">4x4</button>
+            <button class="grid-btn" onclick="changeGridSize(6)">6x6</button>
+        </div>
+ 
+        <div class="power-move-settings">
+            <label class="settings-label">Power Move Every:</label>
+            <input type="number" id="powerMoveFrequency" class="power-move-input" value="3" min="2" max="20" onchange="updatePowerMoveFrequency()">
+            <span style="font-size: 14px; color: #666;">moves</span>
+        </div>
+ 
+        <div class="game-info">
+            <div class="current-player">
+                Current Player: <span id="playerDisplay">X</span>
+            </div>
+            <div class="power-move-counter">
+                Moves until Power Move: <span id="powerCounter">3</span>
+            </div>
+        </div>
+ 
+        <div class="status" id="status"></div>
+ 
+        <div class="board" id="board"></div>
+ 
+        <div class="controls">
+            <button class="reset-btn" onclick="resetGame()">New Game</button>
+            <button class="remove-btn" id="removeBtn" onclick="activateRemoveMode()">Remove Opponent's Piece</button>
+        </div>
+    </div>
+ 
+    <!-- Rules Modal -->
+    <div id="rulesModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeRules()">&times;</button>
+            <h2>How to Play</h2>
+            <ul>
+                <li><strong>4x4 Grid:</strong> The board is larger than traditional tic tac toe</li>
+                <li><strong>3 in a Row:</strong> Get 3 of your marks in a row (horizontal, vertical, or diagonal) to win</li>
+                <li><strong>Power Moves:</strong> Every 3 moves, the current player can remove one opponent's piece for free!</li>
+                <li><strong>Turn-based:</strong> Players alternate between X and O</li>
+                <li><strong>Strategy:</strong> Use power moves wisely to block your opponent's winning combinations</li>
+            </ul>
+            <h2>Rules Summary</h2>
+            <ul>
+                <li>Click any empty cell to place your mark</li>
+                <li>Watch the counter in the game info - it tells you when your power move is ready</li>
+                <li>Click "Remove Opponent's Piece" when you have a power move available</li>
+                <li>First to get 3 in a row wins!</li>
+            </ul>
+        </div>
+    </div>
+ 
+    <script>
+        let BOARD_SIZE = 4;
+        let WIN_LENGTH = 3;
+        let POWER_MOVE_FREQUENCY = 3;
+        let board = Array(BOARD_SIZE * BOARD_SIZE).fill(null);
+        let currentPlayer = 'X';
+        let gameOver = false;
+        let moveCount = 0;
+        let powerModeActive = false;
+ 
+        function changeGridSize(size) {
+            BOARD_SIZE = size;
+ 
+            // Set win length based on board size
+            if (size === 3) {
+                WIN_LENGTH = 3;
+            } else if (size === 4) {
+                WIN_LENGTH = 3;
+            } else if (size === 6) {
+                WIN_LENGTH = 4;
+            }
+ 
+            // Update active button
+            document.querySelectorAll('.grid-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+ 
+            // Reset game with new size
+            board = Array(BOARD_SIZE * BOARD_SIZE).fill(null);
+            currentPlayer = 'X';
+            gameOver = false;
+            moveCount = 0;
+            powerModeActive = false;
+            document.getElementById('removeBtn').classList.remove('active');
+            document.getElementById('status').className = 'status';
+ 
+            initBoard();
+            updateStatus();
+            updatePowerMoveCounter();
+        }
+ 
+        function updatePowerMoveFrequency() {
+            const input = document.getElementById('powerMoveFrequency');
+            let value = parseInt(input.value);
+ 
+            // Validate input
+            if (isNaN(value) || value < 2) {
+                value = 2;
+            } else if (value > 20) {
+                value = 20;
+            }
+ 
+            POWER_MOVE_FREQUENCY = value;
+            input.value = value;
+ 
+            // Reset the current game to apply new frequency
+            resetGame();
+        }
+ 
+        function initBoard() {
+            const boardElement = document.getElementById('board');
+            boardElement.innerHTML = '';
+            boardElement.style.gridTemplateColumns = `repeat(${BOARD_SIZE}, 1fr)`;
+            for (let i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.onclick = () => cellClick(i);
+                boardElement.appendChild(cell);
+            }
+            updateBoard();
+        }
+ 
+        function updateBoard() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach((cell, index) => {
+                const value = board[index];
+                cell.textContent = value || '';
+                cell.className = 'cell';
+                if (value) {
+                    cell.classList.add('taken', value.toLowerCase());
+                }
+                if (powerModeActive && value) {
+                    cell.classList.add('power-mode');
+                }
+            });
+        }
+ 
+        function cellClick(index) {
+            if (powerModeActive) {
+                removeOpponentPiece(index);
+                return;
+            }
+ 
+            if (board[index] || gameOver) return;
+ 
+            board[index] = currentPlayer;
+            moveCount++;
+            updatePowerMoveCounter();
+            updateBoard();
+            checkWin();
+ 
+            if (!gameOver) {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                updateStatus();
+            }
+        }
+ 
+        function removeOpponentPiece(index) {
+            if (board[index] && board[index] !== currentPlayer) {
+                board[index] = null;
+                powerModeActive = false;
+                document.getElementById('removeBtn').classList.remove('active');
+                updateBoard();
+ 
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                updateStatus();
+            }
+        }
+ 
+        function activateRemoveMode() {
+            if (moveCount % POWER_MOVE_FREQUENCY === 0 && moveCount > 0) {
+                powerModeActive = true;
+                document.getElementById('status').textContent = '⚡ Click an opponent\'s piece to remove it!';
+                updateBoard();
+            }
+        }
+ 
+        function updatePowerMoveCounter() {
+            const movesUntilPower = POWER_MOVE_FREQUENCY - (moveCount % POWER_MOVE_FREQUENCY);
+            document.getElementById('powerCounter').textContent = movesUntilPower;
+ 
+            if (moveCount % POWER_MOVE_FREQUENCY === 0 && moveCount > 0) {
+                document.getElementById('removeBtn').classList.add('active');
+            } else {
+                document.getElementById('removeBtn').classList.remove('active');
+            }
+        }
+ 
+        function checkWin() {
+            // Check rows
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col <= BOARD_SIZE - WIN_LENGTH; col++) {
+                    if (checkLine(row * BOARD_SIZE + col, 1, WIN_LENGTH)) return;
+                }
+            }
+ 
+            // Check columns
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                for (let row = 0; row <= BOARD_SIZE - WIN_LENGTH; row++) {
+                    if (checkLine(row * BOARD_SIZE + col, BOARD_SIZE, WIN_LENGTH)) return;
+                }
+            }
+ 
+            // Check diagonal (top-left to bottom-right)
+            for (let row = 0; row <= BOARD_SIZE - WIN_LENGTH; row++) {
+                for (let col = 0; col <= BOARD_SIZE - WIN_LENGTH; col++) {
+                    if (checkLine(row * BOARD_SIZE + col, BOARD_SIZE + 1, WIN_LENGTH)) return;
+                }
+            }
+ 
+            // Check diagonal (top-right to bottom-left)
+            for (let row = 0; row <= BOARD_SIZE - WIN_LENGTH; row++) {
+                for (let col = WIN_LENGTH - 1; col < BOARD_SIZE; col++) {
+                    if (checkLine(row * BOARD_SIZE + col, BOARD_SIZE - 1, WIN_LENGTH)) return;
+                }
+            }
+ 
+            // Check draw
+            if (board.every(cell => cell !== null)) {
+                gameOver = true;
+                document.getElementById('status').textContent = "It's a Draw!";
+                document.getElementById('status').classList.add('draw');
+            }
+        }
+ 
+        function checkLine(start, step, length) {
+            const player = board[start];
+            if (!player) return false;
+ 
+            for (let i = 1; i < length; i++) {
+                if (board[start + i * step] !== player) return false;
+            }
+ 
+            gameOver = true;
+            document.getElementById('status').textContent = `🎉 Player ${player} Wins!`;
+            document.getElementById('status').classList.add('winner');
+            return true;
+        }
+ 
+        function updateStatus() {
+            if (!gameOver) {
+                const statusEl = document.getElementById('status');
+                statusEl.textContent = '';
+                statusEl.className = 'status';
+                document.getElementById('playerDisplay').textContent = currentPlayer;
+            }
+        }
+ 
+        function resetGame() {
+            board = Array(BOARD_SIZE * BOARD_SIZE).fill(null);
+            currentPlayer = 'X';
+            gameOver = false;
+            moveCount = 0;
+            powerModeActive = false;
+            document.getElementById('removeBtn').classList.remove('active');
+            document.getElementById('status').className = 'status';
+            updateBoard();
+            updateStatus();
+            updatePowerMoveCounter();
+        }
+ 
+        function openRules() {
+            document.getElementById('rulesModal').classList.add('show');
+        }
+ 
+        function closeRules() {
+            document.getElementById('rulesModal').classList.remove('show');
+        }
+ 
+        window.onclick = function(event) {
+            const modal = document.getElementById('rulesModal');
+            if (event.target == modal) {
+                modal.classList.remove('show');
+            }
+        }
+ 
+        // Initialize game
+        initBoard();
+        updateStatus();
+        updatePowerMoveCounter();
+    </script>
+</body>
+</html>
