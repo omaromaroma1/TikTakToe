@@ -407,6 +407,7 @@
         let gameOver = false;
         let moveCount = 0;
         let powerModeActive = false;
+        let blockedCell = null; // Cell blocked after power move
  
         function changeGridSize(size) {
             BOARD_SIZE = size;
@@ -415,7 +416,7 @@
             if (size === 3) {
                 WIN_LENGTH = 3;
             } else if (size === 4) {
-                WIN_LENGTH = 3;
+                WIN_LENGTH = 4;
             } else if (size === 6) {
                 WIN_LENGTH = 4;
             }
@@ -492,7 +493,7 @@
                 return;
             }
  
-            if (board[index] || gameOver) return;
+            if (board[index] || gameOver || index === blockedCell) return;
  
             board[index] = currentPlayer;
             moveCount++;
@@ -501,6 +502,7 @@
             checkWin();
  
             if (!gameOver) {
+                blockedCell = null; // Unblock the cell after a move is made
                 currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
                 updateStatus();
             }
@@ -509,6 +511,7 @@
         function removeOpponentPiece(index) {
             if (board[index] && board[index] !== currentPlayer) {
                 board[index] = null;
+                blockedCell = index; // Block this cell from the opponent's next move
                 powerModeActive = false;
                 document.getElementById('removeBtn').classList.remove('active');
                 updateBoard();
@@ -603,6 +606,7 @@
             gameOver = false;
             moveCount = 0;
             powerModeActive = false;
+            blockedCell = null;
             document.getElementById('removeBtn').classList.remove('active');
             document.getElementById('status').className = 'status';
             updateBoard();
